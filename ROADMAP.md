@@ -2,7 +2,7 @@
 
 Seven self-contained iterations. Each ships as its own PR with minimal features and full tests.
 
-- [x] **Iteration 1 — Bootstrap**: Empty project skeleton, CLAUDE.md, ROADMAP.md, pyproject.toml, Alembic config.
+- [x] **Iteration 1 — Bootstrap**: Empty project skeleton, CLAUDE.md, ROADMAP.md, pyproject.toml, Alembic config, Dockerfile and Docker Compose for self-contained local execution.
 - [ ] **Iteration 2 — Vehicle domain model + create**: `Vehicle` entity, `VehicleStatus` enum, `VehicleRepository` ABC, `create_vehicle` use case, SQLAlchemy model, migration, unit + integration tests.
 - [ ] **Iteration 3 — Vehicle status change**: `update_vehicle_status` use case, AVAILABLE ↔ MAINTENANCE transitions, tests.
 - [ ] **Iteration 4 — Available vehicles endpoint**: `GET /vehicles?start_date=&end_date=` returns non-maintenance vehicles. FastAPI router + Pydantic schemas + endpoint tests.

@@ -15,31 +15,67 @@ tests/
   integration/     Real PostgreSQL, real FastAPI test client.
 ```
 
-## Setup
+## First-time Setup
+
+### With Docker (recommended)
+
+Requires Docker and Docker Compose.
 
 ```bash
+docker compose up --build
+```
+
+This starts PostgreSQL, runs all pending migrations, and launches the API on http://localhost:8000.
+
+API docs are available at http://localhost:8000/docs once the app is running.
+
+To stop and remove volumes:
+
+```bash
+docker compose down -v
+```
+
+### Without Docker (local development)
+
+Requires Python 3.12+, Poetry, and a running PostgreSQL instance.
+
+```bash
+# Install dependencies
 poetry install
-cp .env.example .env   # then fill in DATABASE_URL
-alembic upgrade head
+
+# Configure the database connection
+cp .env.example .env
+# Edit .env and set DATABASE_URL to point to your PostgreSQL instance
+
+# Apply migrations
+poetry run alembic upgrade head
+
+# Start the server
+poetry run uvicorn oscars.api.main:app --reload
 ```
 
-## Running
+API docs are available at http://localhost:8000/docs.
+
+## Running Tests
+
+Unit tests require no database:
 
 ```bash
-uvicorn oscars.api.main:app --reload
+poetry run pytest tests/unit/
 ```
 
-## Testing
+Integration tests require a PostgreSQL database. The simplest way is to use Docker Compose to start just the database:
 
 ```bash
-poetry run pytest tests/unit/          # no database needed
-poetry run pytest tests/integration/   # requires DATABASE_URL pointing to a test database
-poetry run pytest --cov=src/oscars     # full coverage report
+docker compose up db -d
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/oscars
+poetry run pytest tests/integration/
 ```
 
-Integration tests require:
+Or run all tests with coverage:
+
 ```bash
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/oscars_test
+poetry run pytest --cov=src/oscars
 ```
 
 ## Conventions
