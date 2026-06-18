@@ -1,11 +1,11 @@
 meta {
-  name: Update Status
+  name: Update Vehicle
   type: http
   seq: 3
 }
 
 patch {
-  url: {{baseUrl}}/vehicles/:vehicle_id/status
+  url: {{baseUrl}}/vehicles/:vehicle_id
   body: json
   auth: none
 }
@@ -20,6 +20,8 @@ headers {
 
 body:json {
   {
+    "dealer": "Best Cars",
+    "daily_price": "99.99",
     "status": "maintenance"
   }
 }
