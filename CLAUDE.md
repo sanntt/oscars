@@ -95,6 +95,10 @@ poetry run ruff check src/ tests/
 poetry run pytest
 ```
 
+## Bruno API Collection
+
+The `bruno/` directory contains a Bruno collection for manually exercising the API. When adding or changing an endpoint, update the corresponding `.bru` file (or add a new one). Each file maps to one request: method, URL, path params, headers, and body.
+
 ## Conventions
 
 - No comments. Code reads like a book.
