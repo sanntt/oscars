@@ -2,16 +2,18 @@ from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from oscars.domain.entities import VehicleStatus
 
 
 class VehicleCreate(BaseModel):
-    dealer: str
-    daily_price: Decimal
+    dealer: str = Field(min_length=1)
+    daily_price: Decimal = Field(gt=0, lt=10000)
 
 
 class VehicleStatusUpdate(BaseModel):
-    status: str
+    status: VehicleStatus
 
 
 class VehicleResponse(BaseModel):

@@ -114,6 +114,48 @@ def test_list_available_includes_vehicle_booked_on_different_dates(api_client, v
     assert "Available Later" in dealers
 
 
+def test_create_vehicle_returns_422_when_daily_price_exceeds_max(api_client):
+    response = api_client.post("/vehicles", json={"dealer": "Pricey Cars", "daily_price": "10000"})
+
+    assert response.status_code == 422
+
+
+def test_create_vehicle_returns_422_when_daily_price_is_zero(api_client):
+    response = api_client.post("/vehicles", json={"dealer": "Free Cars", "daily_price": "0"})
+
+    assert response.status_code == 422
+
+
+def test_create_vehicle_returns_422_when_daily_price_is_negative(api_client):
+    response = api_client.post("/vehicles", json={"dealer": "Debt Cars", "daily_price": "-1"})
+
+    assert response.status_code == 422
+
+
+def test_create_vehicle_returns_422_when_dealer_is_empty(api_client):
+    response = api_client.post("/vehicles", json={"dealer": "", "daily_price": "99.99"})
+
+    assert response.status_code == 422
+
+
+def test_list_available_returns_422_when_only_start_date_provided(api_client):
+    response = api_client.get("/vehicles?start_date=2025-01-01")
+
+    assert response.status_code == 422
+
+
+def test_list_available_returns_422_when_only_end_date_provided(api_client):
+    response = api_client.get("/vehicles?end_date=2025-01-05")
+
+    assert response.status_code == 422
+
+
+def test_list_available_returns_422_when_start_date_is_not_before_end_date(api_client):
+    response = api_client.get("/vehicles?start_date=2025-01-05&end_date=2025-01-01")
+
+    assert response.status_code == 422
+
+
 def test_list_available_without_date_range_ignores_bookings(api_client, vehicle_repo):
     vehicle = Vehicle(id=uuid4(), dealer="Always Shown", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
     vehicle_repo.add(vehicle)
