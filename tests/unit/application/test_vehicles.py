@@ -85,6 +85,7 @@ def test_update_vehicle_status_back_to_available(repo):
 
 def test_update_vehicle_status_raises_when_vehicle_not_found(repo):
     from uuid import uuid4
+
     from oscars.application.vehicles import update_vehicle_status
     from oscars.domain.exceptions import VehicleNotFoundError
 

@@ -18,11 +18,19 @@ pydantic-settings = "^2.6"
 pytest = "^8.3"
 pytest-cov = "^6.0"
 httpx = "^0.28"
+ruff = "^0.9"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
 
 [build-system]
 requires = ["poetry-core"]
