@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
@@ -18,3 +19,17 @@ class VehicleResponse(BaseModel):
     dealer: str
     daily_price: Decimal
     status: str
+
+
+class BookingCreate(BaseModel):
+    vehicle_id: UUID
+    start_date: date
+    end_date: date
+
+
+class BookingResponse(BaseModel):
+    id: UUID
+    vehicle_id: UUID
+    start_date: date
+    end_date: date
+    price: Decimal
