@@ -14,5 +14,9 @@ class VehicleRepository(ABC):
         pass
 
     @abstractmethod
+    def update(self, vehicle: Vehicle) -> Vehicle:
+        pass
+
+    @abstractmethod
     def list_all(self) -> list[Vehicle]:
         pass

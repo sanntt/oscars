@@ -18,6 +18,10 @@ class InMemoryVehicleRepository(VehicleRepository):
     def get_by_id(self, vehicle_id):
         return self._store.get(vehicle_id)
 
+    def update(self, vehicle: Vehicle) -> Vehicle:
+        self._store[vehicle.id] = vehicle
+        return vehicle
+
     def list_all(self):
         return list(self._store.values())
 
@@ -58,3 +62,31 @@ def test_create_vehicle_stores_correct_dealer_and_price(repo):
 
     assert vehicle.dealer == "Speed Motors"
     assert vehicle.daily_price == Decimal("120.50")
+
+
+def test_update_vehicle_status_to_maintenance(repo):
+    from oscars.application.vehicles import create_vehicle, update_vehicle_status
+
+    vehicle = create_vehicle("Best Cars", Decimal("75.00"), repo)
+    updated = update_vehicle_status(vehicle.id, VehicleStatus.MAINTENANCE, repo)
+
+    assert updated.status == VehicleStatus.MAINTENANCE
+
+
+def test_update_vehicle_status_back_to_available(repo):
+    from oscars.application.vehicles import create_vehicle, update_vehicle_status
+
+    vehicle = create_vehicle("Best Cars", Decimal("75.00"), repo)
+    update_vehicle_status(vehicle.id, VehicleStatus.MAINTENANCE, repo)
+    updated = update_vehicle_status(vehicle.id, VehicleStatus.AVAILABLE, repo)
+
+    assert updated.status == VehicleStatus.AVAILABLE
+
+
+def test_update_vehicle_status_raises_when_vehicle_not_found(repo):
+    from uuid import uuid4
+    from oscars.application.vehicles import update_vehicle_status
+    from oscars.domain.exceptions import VehicleNotFoundError
+
+    with pytest.raises(VehicleNotFoundError):
+        update_vehicle_status(uuid4(), VehicleStatus.MAINTENANCE, repo)

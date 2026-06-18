@@ -27,6 +27,12 @@ class SqlAlchemyVehicleRepository(VehicleRepository):
         record = self._session.get(VehicleModel, vehicle_id)
         return self._to_entity(record) if record else None
 
+    def update(self, vehicle: Vehicle) -> Vehicle:
+        record = self._session.get(VehicleModel, vehicle.id)
+        record.status = vehicle.status.value
+        self._session.flush()
+        return vehicle
+
     def list_all(self) -> list[Vehicle]:
         records = self._session.query(VehicleModel).all()
         return [self._to_entity(r) for r in records]

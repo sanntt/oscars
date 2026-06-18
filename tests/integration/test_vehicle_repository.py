@@ -40,6 +40,28 @@ def test_list_all_returns_empty_when_no_vehicles(vehicle_repo):
     assert result == []
 
 
+def test_update_persists_status_change(vehicle_repo, sample_vehicle):
+    vehicle_repo.add(sample_vehicle)
+    sample_vehicle.status = VehicleStatus.MAINTENANCE
+
+    vehicle_repo.update(sample_vehicle)
+
+    found = vehicle_repo.get_by_id(sample_vehicle.id)
+    assert found.status == VehicleStatus.MAINTENANCE
+
+
+def test_update_reflects_new_status_on_subsequent_reads(vehicle_repo, sample_vehicle):
+    vehicle_repo.add(sample_vehicle)
+    sample_vehicle.status = VehicleStatus.MAINTENANCE
+    vehicle_repo.update(sample_vehicle)
+
+    sample_vehicle.status = VehicleStatus.AVAILABLE
+    vehicle_repo.update(sample_vehicle)
+
+    found = vehicle_repo.get_by_id(sample_vehicle.id)
+    assert found.status == VehicleStatus.AVAILABLE
+
+
 def test_list_all_returns_all_added_vehicles(vehicle_repo):
     vehicle_a = Vehicle(id=uuid4(), dealer="A", daily_price=Decimal("10.00"), status=VehicleStatus.AVAILABLE)
     vehicle_b = Vehicle(id=uuid4(), dealer="B", daily_price=Decimal("20.00"), status=VehicleStatus.MAINTENANCE)
