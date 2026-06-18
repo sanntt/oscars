@@ -1,19 +1,25 @@
 from datetime import date
 from decimal import Decimal
+from typing import Annotated
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 from oscars.domain.entities import VehicleStatus
 
+_Dealer = Annotated[str, Field(min_length=1)]
+_DailyPrice = Annotated[Decimal, Field(gt=0, lt=10000)]
+
 
 class VehicleCreate(BaseModel):
-    dealer: str = Field(min_length=1)
-    daily_price: Decimal = Field(gt=0, lt=10000)
+    dealer: _Dealer
+    daily_price: _DailyPrice
 
 
-class VehicleStatusUpdate(BaseModel):
-    status: VehicleStatus
+class VehicleUpdate(BaseModel):
+    dealer: _Dealer | None = None
+    daily_price: _DailyPrice | None = None
+    status: VehicleStatus | None = None
 
 
 class VehicleResponse(BaseModel):

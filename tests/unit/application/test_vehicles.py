@@ -69,30 +69,58 @@ def test_create_vehicle_stores_correct_dealer_and_price(repo):
     assert vehicle.daily_price == Decimal("120.50")
 
 
-def test_update_vehicle_status_to_maintenance(repo):
-    from oscars.application.vehicles import create_vehicle, update_vehicle_status
+def test_update_vehicle_updates_status_to_maintenance(repo):
+    from oscars.application.vehicles import create_vehicle, update_vehicle
 
     vehicle = create_vehicle("Best Cars", Decimal("75.00"), repo)
-    updated = update_vehicle_status(vehicle.id, VehicleStatus.MAINTENANCE, repo)
+    updated = update_vehicle(vehicle.id, None, None, VehicleStatus.MAINTENANCE, repo)
 
     assert updated.status == VehicleStatus.MAINTENANCE
 
 
-def test_update_vehicle_status_back_to_available(repo):
-    from oscars.application.vehicles import create_vehicle, update_vehicle_status
+def test_update_vehicle_updates_status_back_to_available(repo):
+    from oscars.application.vehicles import create_vehicle, update_vehicle
 
     vehicle = create_vehicle("Best Cars", Decimal("75.00"), repo)
-    update_vehicle_status(vehicle.id, VehicleStatus.MAINTENANCE, repo)
-    updated = update_vehicle_status(vehicle.id, VehicleStatus.AVAILABLE, repo)
+    update_vehicle(vehicle.id, None, None, VehicleStatus.MAINTENANCE, repo)
+    updated = update_vehicle(vehicle.id, None, None, VehicleStatus.AVAILABLE, repo)
 
     assert updated.status == VehicleStatus.AVAILABLE
 
 
-def test_update_vehicle_status_raises_when_vehicle_not_found(repo):
+def test_update_vehicle_updates_dealer(repo):
+    from oscars.application.vehicles import create_vehicle, update_vehicle
+
+    vehicle = create_vehicle("Best Cars", Decimal("75.00"), repo)
+    updated = update_vehicle(vehicle.id, "Speed Motors", None, None, repo)
+
+    assert updated.dealer == "Speed Motors"
+
+
+def test_update_vehicle_updates_daily_price(repo):
+    from oscars.application.vehicles import create_vehicle, update_vehicle
+
+    vehicle = create_vehicle("Best Cars", Decimal("75.00"), repo)
+    updated = update_vehicle(vehicle.id, None, Decimal("200.00"), None, repo)
+
+    assert updated.daily_price == Decimal("200.00")
+
+
+def test_update_vehicle_does_not_change_unspecified_fields(repo):
+    from oscars.application.vehicles import create_vehicle, update_vehicle
+
+    vehicle = create_vehicle("Best Cars", Decimal("75.00"), repo)
+    updated = update_vehicle(vehicle.id, "New Name", None, None, repo)
+
+    assert updated.daily_price == Decimal("75.00")
+    assert updated.status == VehicleStatus.AVAILABLE
+
+
+def test_update_vehicle_raises_when_not_found(repo):
     from uuid import uuid4
 
-    from oscars.application.vehicles import update_vehicle_status
+    from oscars.application.vehicles import update_vehicle
     from oscars.domain.exceptions import VehicleNotFoundError
 
     with pytest.raises(VehicleNotFoundError):
-        update_vehicle_status(uuid4(), VehicleStatus.MAINTENANCE, repo)
+        update_vehicle(uuid4(), None, None, VehicleStatus.MAINTENANCE, repo)
