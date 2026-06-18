@@ -23,13 +23,13 @@ The docs page lets you explore and call every endpoint directly from the browser
 
 ## Running the tests
 
-Open a second terminal (keep `docker compose up` running in the first one) and run:
+The application does not need to be running. Open a terminal in the project folder and run:
 
 ```bash
-docker compose exec app pytest
+docker compose run --rm app pytest
 ```
 
-This runs all tests inside the running container, which already has the database available.
+This starts a temporary container, applies any pending migrations, runs all tests against the database, and removes the container when done.
 
 ## Stopping the application
 
