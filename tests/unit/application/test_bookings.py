@@ -223,7 +223,6 @@ def test_overlap_raises_when_new_booking_contains_existing(available_vehicle):
 
 
 def test_no_overlap_when_new_booking_starts_on_existing_end_date(available_vehicle):
-
     booking_repo = InMemoryBookingRepository()
     _book(available_vehicle, booking_repo, date(2025, 1, 1), date(2025, 1, 5))
 
