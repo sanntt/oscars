@@ -58,14 +58,16 @@ def booking_repo(db_session):
 def api_client(db_session):
     from fastapi.testclient import TestClient
 
-    from oscars.api.deps import get_vehicle_repository
+    from oscars.api.deps import get_booking_repository, get_vehicle_repository
     from oscars.api.main import create_app
+    from oscars.infrastructure.booking_repository import SqlAlchemyBookingRepository
     from oscars.infrastructure.database import get_db
     from oscars.infrastructure.vehicle_repository import SqlAlchemyVehicleRepository
 
     application = create_app()
     application.dependency_overrides[get_db] = lambda: db_session
     application.dependency_overrides[get_vehicle_repository] = lambda: SqlAlchemyVehicleRepository(db_session)
+    application.dependency_overrides[get_booking_repository] = lambda: SqlAlchemyBookingRepository(db_session)
 
     with TestClient(application) as client:
         yield client
