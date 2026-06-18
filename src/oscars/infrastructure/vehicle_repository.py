@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
@@ -35,6 +36,10 @@ class SqlAlchemyVehicleRepository(VehicleRepository):
 
     def list_all(self) -> list[Vehicle]:
         records = self._session.query(VehicleModel).all()
+        return [self._to_entity(r) for r in records]
+
+    def list_available(self, start_date: date | None, end_date: date | None) -> list[Vehicle]:
+        records = self._session.query(VehicleModel).filter(VehicleModel.status != VehicleStatus.MAINTENANCE.value).all()
         return [self._to_entity(r) for r in records]
 
     def _to_entity(self, record: VehicleModel) -> Vehicle:

@@ -25,6 +25,11 @@ class InMemoryVehicleRepository(VehicleRepository):
     def list_all(self):
         return list(self._store.values())
 
+    def list_available(self, start_date, end_date):
+        from oscars.domain.entities import VehicleStatus
+
+        return [v for v in self._store.values() if v.status != VehicleStatus.MAINTENANCE]
+
 
 @pytest.fixture
 def repo():

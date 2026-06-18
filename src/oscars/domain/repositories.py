@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import date
 from uuid import UUID
 
 from oscars.domain.entities import Vehicle
@@ -19,4 +20,8 @@ class VehicleRepository(ABC):
 
     @abstractmethod
     def list_all(self) -> list[Vehicle]:
+        pass
+
+    @abstractmethod
+    def list_available(self, start_date: date | None, end_date: date | None) -> list[Vehicle]:
         pass
