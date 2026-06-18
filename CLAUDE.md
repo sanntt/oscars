@@ -58,24 +58,41 @@ API docs are available at http://localhost:8000/docs.
 
 ## Running Tests
 
-Unit tests require no database:
-
 ```bash
-poetry run pytest tests/unit/
+docker compose run --rm app pytest
 ```
 
-Integration tests require a PostgreSQL database. The simplest way is to use Docker Compose to start just the database:
+`src/` and `tests/` are mounted as volumes via `docker-compose.override.yml`, so local changes are picked up immediately without rebuilding the image.
 
+To run only unit tests (no database needed):
 ```bash
-docker compose up db -d
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/oscars
-poetry run pytest tests/integration/
+docker compose run --rm app pytest tests/unit/
 ```
 
-Or run all tests with coverage:
+## Definition of Done
 
+Every feature is only complete when all three of the following pass with no errors. Fix any failure before committing.
+
+**1. Format**
 ```bash
-poetry run pytest --cov=src/oscars
+docker compose run --rm app ruff format src/ tests/
+```
+
+**2. Lint**
+```bash
+docker compose run --rm app ruff check src/ tests/
+```
+
+**3. Tests**
+```bash
+docker compose run --rm app pytest
+```
+
+If working locally without Docker:
+```bash
+poetry run ruff format src/ tests/
+poetry run ruff check src/ tests/
+poetry run pytest
 ```
 
 ## Conventions
