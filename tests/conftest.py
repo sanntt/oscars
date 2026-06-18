@@ -48,6 +48,13 @@ def vehicle_repo(db_session):
 
 
 @pytest.fixture
+def booking_repo(db_session):
+    from oscars.infrastructure.booking_repository import SqlAlchemyBookingRepository
+
+    return SqlAlchemyBookingRepository(db_session)
+
+
+@pytest.fixture
 def api_client(db_session):
     from fastapi.testclient import TestClient
 
