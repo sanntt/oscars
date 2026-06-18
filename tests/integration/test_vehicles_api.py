@@ -77,3 +77,53 @@ def test_update_status_returns_422_for_invalid_status(api_client):
     response = api_client.patch(f"/vehicles/{vehicle_id}/status", json={"status": "flying"})
 
     assert response.status_code == 422
+
+
+def test_list_available_excludes_vehicles_booked_in_requested_range(api_client, vehicle_repo):
+    booked = Vehicle(id=uuid4(), dealer="Booked Co", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
+    free = Vehicle(id=uuid4(), dealer="Free Co", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_repo.add(booked)
+    vehicle_repo.add(free)
+
+    api_client.post(
+        "/bookings",
+        json={"vehicle_id": str(booked.id), "start_date": "2025-06-01", "end_date": "2025-06-10"},
+    )
+
+    response = api_client.get("/vehicles?start_date=2025-06-05&end_date=2025-06-08")
+
+    dealers = [v["dealer"] for v in response.json()]
+    assert "Booked Co" not in dealers
+    assert "Free Co" in dealers
+
+
+def test_list_available_includes_vehicle_booked_on_different_dates(api_client, vehicle_repo):
+    vehicle = Vehicle(
+        id=uuid4(), dealer="Available Later", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE
+    )
+    vehicle_repo.add(vehicle)
+
+    api_client.post(
+        "/bookings",
+        json={"vehicle_id": str(vehicle.id), "start_date": "2025-07-01", "end_date": "2025-07-05"},
+    )
+
+    response = api_client.get("/vehicles?start_date=2025-07-10&end_date=2025-07-15")
+
+    dealers = [v["dealer"] for v in response.json()]
+    assert "Available Later" in dealers
+
+
+def test_list_available_without_date_range_ignores_bookings(api_client, vehicle_repo):
+    vehicle = Vehicle(id=uuid4(), dealer="Always Shown", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_repo.add(vehicle)
+
+    api_client.post(
+        "/bookings",
+        json={"vehicle_id": str(vehicle.id), "start_date": "2025-08-01", "end_date": "2025-08-10"},
+    )
+
+    response = api_client.get("/vehicles")
+
+    dealers = [v["dealer"] for v in response.json()]
+    assert "Always Shown" in dealers

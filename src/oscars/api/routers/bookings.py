@@ -3,7 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from oscars.api.deps import get_booking_repository, get_vehicle_repository
 from oscars.api.schemas import BookingCreate, BookingResponse
 from oscars.application.bookings import create_booking
-from oscars.domain.exceptions import InvalidDateRangeError, VehicleInMaintenanceError, VehicleNotFoundError
+from oscars.domain.exceptions import (
+    InvalidDateRangeError,
+    OverlappingBookingError,
+    VehicleInMaintenanceError,
+    VehicleNotFoundError,
+)
 from oscars.domain.repositories import BookingRepository, VehicleRepository
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
@@ -21,6 +26,8 @@ def create(
         raise HTTPException(status_code=404, detail="Vehicle not found")
     except VehicleInMaintenanceError:
         raise HTTPException(status_code=409, detail="Vehicle is in maintenance and cannot be booked")
+    except OverlappingBookingError:
+        raise HTTPException(status_code=409, detail="Vehicle is already booked for the requested dates")
     except InvalidDateRangeError:
         raise HTTPException(status_code=422, detail="end_date must be after start_date")
     return BookingResponse(

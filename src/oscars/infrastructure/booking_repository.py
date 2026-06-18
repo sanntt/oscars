@@ -2,9 +2,11 @@ from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from oscars.domain.entities import Booking
+from oscars.domain.exceptions import OverlappingBookingError
 from oscars.domain.repositories import BookingRepository
 from oscars.infrastructure.models import BookingModel
 
@@ -22,7 +24,12 @@ class SqlAlchemyBookingRepository(BookingRepository):
             price=booking.price,
         )
         self._session.add(record)
-        self._session.flush()
+        try:
+            self._session.flush()
+        except IntegrityError as exc:
+            if "overlapping_bookings_excl" in str(exc.orig):
+                raise OverlappingBookingError(booking.vehicle_id)
+            raise
         return booking
 
     def get_by_id(self, booking_id: UUID) -> Booking | None:
@@ -30,7 +37,16 @@ class SqlAlchemyBookingRepository(BookingRepository):
         return self._to_entity(record) if record else None
 
     def find_overlapping(self, vehicle_id: UUID, start_date: date, end_date: date) -> list[Booking]:
-        return []
+        records = (
+            self._session.query(BookingModel)
+            .filter(
+                BookingModel.vehicle_id == vehicle_id,
+                BookingModel.start_date < end_date,
+                BookingModel.end_date > start_date,
+            )
+            .all()
+        )
+        return [self._to_entity(r) for r in records]
 
     def _to_entity(self, record: BookingModel) -> Booking:
         return Booking(

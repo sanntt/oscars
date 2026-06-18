@@ -2,11 +2,12 @@ from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
+from sqlalchemy import exists, not_
 from sqlalchemy.orm import Session
 
 from oscars.domain.entities import Vehicle, VehicleStatus
 from oscars.domain.repositories import VehicleRepository
-from oscars.infrastructure.models import VehicleModel
+from oscars.infrastructure.models import BookingModel, VehicleModel
 
 
 class SqlAlchemyVehicleRepository(VehicleRepository):
@@ -39,8 +40,17 @@ class SqlAlchemyVehicleRepository(VehicleRepository):
         return [self._to_entity(r) for r in records]
 
     def list_available(self, start_date: date | None, end_date: date | None) -> list[Vehicle]:
-        records = self._session.query(VehicleModel).filter(VehicleModel.status != VehicleStatus.MAINTENANCE.value).all()
-        return [self._to_entity(r) for r in records]
+        query = self._session.query(VehicleModel).filter(VehicleModel.status != VehicleStatus.MAINTENANCE.value)
+
+        if start_date and end_date:
+            booked = exists().where(
+                BookingModel.vehicle_id == VehicleModel.id,
+                BookingModel.start_date < end_date,
+                BookingModel.end_date > start_date,
+            )
+            query = query.filter(not_(booked))
+
+        return [self._to_entity(r) for r in query.all()]
 
     def _to_entity(self, record: VehicleModel) -> Vehicle:
         return Vehicle(

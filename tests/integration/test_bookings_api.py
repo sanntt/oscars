@@ -75,3 +75,49 @@ def test_create_booking_returns_422_when_fields_are_missing(api_client):
     response = api_client.post("/bookings", json={"vehicle_id": str(uuid4())})
 
     assert response.status_code == 422
+
+
+def test_create_booking_returns_409_when_dates_overlap(api_client, available_vehicle):
+    api_client.post(
+        "/bookings",
+        json={"vehicle_id": str(available_vehicle.id), "start_date": "2025-03-01", "end_date": "2025-03-10"},
+    )
+
+    response = api_client.post(
+        "/bookings",
+        json={"vehicle_id": str(available_vehicle.id), "start_date": "2025-03-05", "end_date": "2025-03-15"},
+    )
+
+    assert response.status_code == 409
+
+
+def test_create_booking_allows_adjacent_bookings_on_same_vehicle(api_client, available_vehicle):
+    api_client.post(
+        "/bookings",
+        json={"vehicle_id": str(available_vehicle.id), "start_date": "2025-04-01", "end_date": "2025-04-05"},
+    )
+
+    response = api_client.post(
+        "/bookings",
+        json={"vehicle_id": str(available_vehicle.id), "start_date": "2025-04-05", "end_date": "2025-04-10"},
+    )
+
+    assert response.status_code == 201
+
+
+def test_create_booking_allows_same_dates_on_different_vehicles(api_client, vehicle_repo):
+    vehicle_a = Vehicle(id=uuid4(), dealer="A", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_b = Vehicle(id=uuid4(), dealer="B", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_repo.add(vehicle_a)
+    vehicle_repo.add(vehicle_b)
+
+    api_client.post(
+        "/bookings",
+        json={"vehicle_id": str(vehicle_a.id), "start_date": "2025-05-01", "end_date": "2025-05-05"},
+    )
+    response = api_client.post(
+        "/bookings",
+        json={"vehicle_id": str(vehicle_b.id), "start_date": "2025-05-01", "end_date": "2025-05-05"},
+    )
+
+    assert response.status_code == 201
