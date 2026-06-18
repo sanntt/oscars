@@ -12,7 +12,7 @@ COPY pyproject.toml poetry.lock ./
 COPY src/ src/
 COPY alembic.ini entrypoint.sh ./
 
-RUN poetry install --only main && rm -rf /tmp/poetry_cache && chmod +x entrypoint.sh
+RUN poetry install && rm -rf /tmp/poetry_cache && chmod +x entrypoint.sh
 
 EXPOSE 8000
 
