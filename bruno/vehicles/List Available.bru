@@ -1,0 +1,16 @@
+meta {
+  name: List Available
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/vehicles
+  body: none
+  auth: none
+}
+
+params:query {
+  ~start_date: 2025-06-01
+  ~end_date: 2025-06-10
+}
