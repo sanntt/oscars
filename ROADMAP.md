@@ -4,8 +4,8 @@ Seven self-contained iterations. Each ships as its own PR with minimal features 
 
 - [x] **Iteration 1 — Bootstrap**: Empty project skeleton, CLAUDE.md, ROADMAP.md, pyproject.toml, Alembic config, Dockerfile and Docker Compose for self-contained local execution.
 - [x] **Iteration 2 — Vehicle domain model + create**: `Vehicle` entity, `VehicleStatus` enum, `VehicleRepository` ABC, `create_vehicle` use case, SQLAlchemy model, migration, unit + integration tests.
-- [x] **Iteration 3 — Vehicle status change**: `update_vehicle_status` use case, AVAILABLE ↔ MAINTENANCE transitions, tests.
-- [x] **Iteration 4 — Available vehicles endpoint**: `GET /vehicles?start_date=&end_date=` returns non-maintenance vehicles. FastAPI router + Pydantic schemas + endpoint tests.
+- [x] **Iteration 3 — Vehicle status change**: `update_vehicle` use case, AVAILABLE ↔ MAINTENANCE transitions, tests.
+- [x] **Iteration 4 — Available vehicles endpoint**: `GET /vehicles?start_date=&end_date=` returns non-maintenance vehicles; `PATCH /vehicles/{id}` partial update of dealer, daily_price, and status. FastAPI router + Pydantic schemas + endpoint tests.
 - [x] **Iteration 5 — Booking domain model + create**: `Booking` entity, `BookingRepository` ABC, `create_booking` use case with maintenance guard and price calculation, migration, unit + integration tests.
 - [x] **Iteration 6 — Booking creation endpoint**: `POST /bookings`, error handling, endpoint tests.
 - [x] **Iteration 7 — Overlap prevention**: Application-level overlap check + PostgreSQL exclusion constraint (`btree_gist`) for concurrent request safety. Full edge-case tests.

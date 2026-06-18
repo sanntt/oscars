@@ -4,8 +4,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 
 from oscars.api.deps import get_vehicle_repository
-from oscars.api.schemas import VehicleCreate, VehicleResponse, VehicleStatusUpdate
-from oscars.application.vehicles import create_vehicle, update_vehicle_status
+from oscars.api.schemas import VehicleCreate, VehicleResponse, VehicleUpdate
+from oscars.application.vehicles import create_vehicle, update_vehicle
 from oscars.domain.exceptions import VehicleNotFoundError
 from oscars.domain.repositories import VehicleRepository
 
@@ -36,14 +36,14 @@ def list_available(
     ]
 
 
-@router.patch("/{vehicle_id}/status", response_model=VehicleResponse)
-def update_status(
+@router.patch("/{vehicle_id}", response_model=VehicleResponse)
+def update(
     vehicle_id: UUID,
-    body: VehicleStatusUpdate,
+    body: VehicleUpdate,
     repo: VehicleRepository = Depends(get_vehicle_repository),
 ):
     try:
-        vehicle = update_vehicle_status(vehicle_id, body.status, repo)
+        vehicle = update_vehicle(vehicle_id, body.dealer, body.daily_price, body.status, repo)
     except VehicleNotFoundError:
         raise HTTPException(status_code=404, detail="Vehicle not found")
     return VehicleResponse(

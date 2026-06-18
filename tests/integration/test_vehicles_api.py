@@ -54,27 +54,101 @@ def test_list_available_accepts_date_range_params(api_client):
     assert response.status_code == 200
 
 
-def test_update_status_to_maintenance(api_client, vehicle_repo):
+def test_update_vehicle_status_to_maintenance(api_client, vehicle_repo):
     vehicle = Vehicle(id=uuid4(), dealer="Fast Co", daily_price=Decimal("80.00"), status=VehicleStatus.AVAILABLE)
     vehicle_repo.add(vehicle)
 
-    response = api_client.patch(f"/vehicles/{vehicle.id}/status", json={"status": "maintenance"})
+    response = api_client.patch(f"/vehicles/{vehicle.id}", json={"status": "maintenance"})
 
     assert response.status_code == 200
     assert response.json()["status"] == "maintenance"
 
 
-def test_update_status_returns_404_for_unknown_vehicle(api_client):
-    response = api_client.patch(f"/vehicles/{uuid4()}/status", json={"status": "maintenance"})
+def test_update_vehicle_returns_404_for_unknown_vehicle(api_client):
+    response = api_client.patch(f"/vehicles/{uuid4()}", json={"status": "maintenance"})
 
     assert response.status_code == 404
 
 
-def test_update_status_returns_422_for_invalid_status(api_client):
+def test_update_vehicle_returns_422_for_invalid_status(api_client):
     created = api_client.post("/vehicles", json={"dealer": "Fast Co", "daily_price": "80.00"})
     vehicle_id = created.json()["id"]
 
-    response = api_client.patch(f"/vehicles/{vehicle_id}/status", json={"status": "flying"})
+    response = api_client.patch(f"/vehicles/{vehicle_id}", json={"status": "flying"})
+
+    assert response.status_code == 422
+
+
+def test_update_vehicle_updates_dealer(api_client, vehicle_repo):
+    vehicle = Vehicle(id=uuid4(), dealer="Old Name", daily_price=Decimal("80.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_repo.add(vehicle)
+
+    response = api_client.patch(f"/vehicles/{vehicle.id}", json={"dealer": "New Name"})
+
+    assert response.status_code == 200
+    assert response.json()["dealer"] == "New Name"
+
+
+def test_update_vehicle_updates_daily_price(api_client, vehicle_repo):
+    vehicle = Vehicle(id=uuid4(), dealer="Fast Co", daily_price=Decimal("80.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_repo.add(vehicle)
+
+    response = api_client.patch(f"/vehicles/{vehicle.id}", json={"daily_price": "150.00"})
+
+    assert response.status_code == 200
+    assert response.json()["daily_price"] == "150.00"
+
+
+def test_update_vehicle_updates_multiple_fields(api_client, vehicle_repo):
+    vehicle = Vehicle(id=uuid4(), dealer="Old Name", daily_price=Decimal("80.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_repo.add(vehicle)
+
+    response = api_client.patch(
+        f"/vehicles/{vehicle.id}", json={"dealer": "New Name", "daily_price": "200.00", "status": "maintenance"}
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["dealer"] == "New Name"
+    assert body["daily_price"] == "200.00"
+    assert body["status"] == "maintenance"
+
+
+def test_update_vehicle_does_not_change_unspecified_fields(api_client, vehicle_repo):
+    vehicle = Vehicle(id=uuid4(), dealer="Fast Co", daily_price=Decimal("80.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_repo.add(vehicle)
+
+    response = api_client.patch(f"/vehicles/{vehicle.id}", json={"dealer": "Renamed Co"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["daily_price"] == "80.00"
+    assert body["status"] == "available"
+
+
+def test_update_vehicle_returns_422_when_daily_price_exceeds_max(api_client, vehicle_repo):
+    vehicle = Vehicle(id=uuid4(), dealer="Fast Co", daily_price=Decimal("80.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_repo.add(vehicle)
+
+    response = api_client.patch(f"/vehicles/{vehicle.id}", json={"daily_price": "10000"})
+
+    assert response.status_code == 422
+
+
+def test_update_vehicle_returns_422_when_daily_price_is_zero(api_client, vehicle_repo):
+    vehicle = Vehicle(id=uuid4(), dealer="Fast Co", daily_price=Decimal("80.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_repo.add(vehicle)
+
+    response = api_client.patch(f"/vehicles/{vehicle.id}", json={"daily_price": "0"})
+
+    assert response.status_code == 422
+
+
+def test_update_vehicle_returns_422_when_dealer_is_empty(api_client, vehicle_repo):
+    vehicle = Vehicle(id=uuid4(), dealer="Fast Co", daily_price=Decimal("80.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_repo.add(vehicle)
+
+    response = api_client.patch(f"/vehicles/{vehicle.id}", json={"dealer": ""})
 
     assert response.status_code == 422
 
