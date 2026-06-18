@@ -2,6 +2,9 @@
 
 A REST API for managing a vehicle inventory and checking availability by date range. Vehicles can be marked as available or in maintenance. Available vehicles can be booked for a date range, and the system prevents double-bookings.
 
+**High Level Explanation - Video**: https://www.loom.com/share/be3be157babb4225bf281fa0dc32fc53
+P.S.: The failing tests from the video are integration tests :)
+
 ## Setup
 
 [Docker Desktop](https://www.docker.com/products/docker-desktop/) is the only requirement. It includes Docker Compose, which runs both the API and the database.
