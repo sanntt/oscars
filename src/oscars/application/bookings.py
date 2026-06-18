@@ -22,6 +22,9 @@ def create_booking(
     if start_date >= end_date:
         raise InvalidDateRangeError("end_date must be after start_date")
 
+    if (end_date - start_date).days > 365:
+        raise InvalidDateRangeError("Booking duration cannot exceed 365 days")
+
     vehicle = vehicle_repo.get_by_id(vehicle_id)
     if vehicle is None:
         raise VehicleNotFoundError(vehicle_id)

@@ -240,6 +240,19 @@ def test_no_overlap_when_new_booking_ends_on_existing_start_date(available_vehic
     assert booking is not None
 
 
+def test_create_booking_raises_when_duration_exceeds_365_days(available_vehicle):
+    from oscars.application.bookings import create_booking
+
+    with pytest.raises(InvalidDateRangeError):
+        create_booking(
+            available_vehicle.id,
+            date(2025, 1, 1),
+            date(2026, 1, 2),
+            InMemoryVehicleRepository([available_vehicle]),
+            InMemoryBookingRepository(),
+        )
+
+
 def test_no_overlap_for_different_vehicles():
     vehicle_a = Vehicle(id=uuid4(), dealer="A", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
     vehicle_b = Vehicle(id=uuid4(), dealer="B", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)

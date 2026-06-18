@@ -105,6 +105,32 @@ def test_create_booking_allows_adjacent_bookings_on_same_vehicle(api_client, ava
     assert response.status_code == 201
 
 
+def test_create_booking_returns_422_when_duration_exceeds_365_days(api_client, available_vehicle):
+    response = api_client.post(
+        "/bookings",
+        json={
+            "vehicle_id": str(available_vehicle.id),
+            "start_date": "2025-01-01",
+            "end_date": "2026-01-02",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_booking_allows_booking_of_exactly_365_days(api_client, available_vehicle):
+    response = api_client.post(
+        "/bookings",
+        json={
+            "vehicle_id": str(available_vehicle.id),
+            "start_date": "2025-01-01",
+            "end_date": "2026-01-01",
+        },
+    )
+
+    assert response.status_code == 201
+
+
 def test_create_booking_allows_same_dates_on_different_vehicles(api_client, vehicle_repo):
     vehicle_a = Vehicle(id=uuid4(), dealer="A", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
     vehicle_b = Vehicle(id=uuid4(), dealer="B", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
