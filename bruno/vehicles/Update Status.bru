@@ -1,0 +1,25 @@
+meta {
+  name: Update Status
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/vehicles/:vehicle_id/status
+  body: json
+  auth: none
+}
+
+params:path {
+  vehicle_id: 00000000-0000-0000-0000-000000000000
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "status": "maintenance"
+  }
+}

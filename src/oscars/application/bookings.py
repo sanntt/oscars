@@ -3,7 +3,12 @@ from decimal import Decimal
 from uuid import UUID, uuid4
 
 from oscars.domain.entities import Booking, VehicleStatus
-from oscars.domain.exceptions import InvalidDateRangeError, VehicleInMaintenanceError, VehicleNotFoundError
+from oscars.domain.exceptions import (
+    InvalidDateRangeError,
+    OverlappingBookingError,
+    VehicleInMaintenanceError,
+    VehicleNotFoundError,
+)
 from oscars.domain.repositories import BookingRepository, VehicleRepository
 
 
@@ -23,6 +28,9 @@ def create_booking(
 
     if vehicle.status == VehicleStatus.MAINTENANCE:
         raise VehicleInMaintenanceError(vehicle_id)
+
+    if booking_repo.find_overlapping(vehicle_id, start_date, end_date):
+        raise OverlappingBookingError(vehicle_id)
 
     price = vehicle.daily_price * Decimal((end_date - start_date).days)
 

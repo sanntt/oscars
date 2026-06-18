@@ -8,3 +8,7 @@ class VehicleInMaintenanceError(Exception):
 
 class InvalidDateRangeError(Exception):
     pass
+
+
+class OverlappingBookingError(Exception):
+    pass

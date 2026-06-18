@@ -5,7 +5,12 @@ from uuid import UUID, uuid4
 import pytest
 
 from oscars.domain.entities import Booking, Vehicle, VehicleStatus
-from oscars.domain.exceptions import InvalidDateRangeError, VehicleInMaintenanceError, VehicleNotFoundError
+from oscars.domain.exceptions import (
+    InvalidDateRangeError,
+    OverlappingBookingError,
+    VehicleInMaintenanceError,
+    VehicleNotFoundError,
+)
 from oscars.domain.repositories import BookingRepository, VehicleRepository
 
 
@@ -43,7 +48,11 @@ class InMemoryBookingRepository(BookingRepository):
         return self._store.get(booking_id)
 
     def find_overlapping(self, vehicle_id: UUID, start_date: date, end_date: date) -> list[Booking]:
-        return []
+        return [
+            b
+            for b in self._store.values()
+            if b.vehicle_id == vehicle_id and b.start_date < end_date and b.end_date > start_date
+        ]
 
 
 @pytest.fixture
@@ -163,3 +172,87 @@ def test_create_booking_persists_to_repository(available_vehicle):
     )
 
     assert booking_repo.get_by_id(booking.id) is not None
+
+
+# --- Overlap cases ---
+# All use half-open intervals [start, end). A booking Jan 1–5 occupies Jan 1, 2, 3, 4.
+
+
+def _book(vehicle, booking_repo, start, end):
+    from oscars.application.bookings import create_booking
+
+    return create_booking(
+        vehicle.id,
+        start,
+        end,
+        InMemoryVehicleRepository([vehicle]),
+        booking_repo,
+    )
+
+
+def test_overlap_raises_when_new_booking_starts_inside_existing(available_vehicle):
+    booking_repo = InMemoryBookingRepository()
+    _book(available_vehicle, booking_repo, date(2025, 1, 1), date(2025, 1, 5))
+
+    with pytest.raises(OverlappingBookingError):
+        _book(available_vehicle, booking_repo, date(2025, 1, 3), date(2025, 1, 8))
+
+
+def test_overlap_raises_when_new_booking_ends_inside_existing(available_vehicle):
+    booking_repo = InMemoryBookingRepository()
+    _book(available_vehicle, booking_repo, date(2025, 1, 5), date(2025, 1, 10))
+
+    with pytest.raises(OverlappingBookingError):
+        _book(available_vehicle, booking_repo, date(2025, 1, 1), date(2025, 1, 7))
+
+
+def test_overlap_raises_when_new_booking_is_identical(available_vehicle):
+    booking_repo = InMemoryBookingRepository()
+    _book(available_vehicle, booking_repo, date(2025, 1, 1), date(2025, 1, 5))
+
+    with pytest.raises(OverlappingBookingError):
+        _book(available_vehicle, booking_repo, date(2025, 1, 1), date(2025, 1, 5))
+
+
+def test_overlap_raises_when_new_booking_contains_existing(available_vehicle):
+    booking_repo = InMemoryBookingRepository()
+    _book(available_vehicle, booking_repo, date(2025, 1, 3), date(2025, 1, 4))
+
+    with pytest.raises(OverlappingBookingError):
+        _book(available_vehicle, booking_repo, date(2025, 1, 1), date(2025, 1, 10))
+
+
+def test_no_overlap_when_new_booking_starts_on_existing_end_date(available_vehicle):
+
+    booking_repo = InMemoryBookingRepository()
+    _book(available_vehicle, booking_repo, date(2025, 1, 1), date(2025, 1, 5))
+
+    booking = _book(available_vehicle, booking_repo, date(2025, 1, 5), date(2025, 1, 8))
+
+    assert booking is not None
+
+
+def test_no_overlap_when_new_booking_ends_on_existing_start_date(available_vehicle):
+    booking_repo = InMemoryBookingRepository()
+    _book(available_vehicle, booking_repo, date(2025, 1, 5), date(2025, 1, 8))
+
+    booking = _book(available_vehicle, booking_repo, date(2025, 1, 1), date(2025, 1, 5))
+
+    assert booking is not None
+
+
+def test_no_overlap_for_different_vehicles():
+    vehicle_a = Vehicle(id=uuid4(), dealer="A", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
+    vehicle_b = Vehicle(id=uuid4(), dealer="B", daily_price=Decimal("100.00"), status=VehicleStatus.AVAILABLE)
+    booking_repo = InMemoryBookingRepository()
+
+    from oscars.application.bookings import create_booking
+
+    create_booking(
+        vehicle_a.id, date(2025, 1, 1), date(2025, 1, 5), InMemoryVehicleRepository([vehicle_a]), booking_repo
+    )
+    booking = create_booking(
+        vehicle_b.id, date(2025, 1, 1), date(2025, 1, 5), InMemoryVehicleRepository([vehicle_b]), booking_repo
+    )
+
+    assert booking is not None
